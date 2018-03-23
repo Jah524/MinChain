@@ -64,8 +64,8 @@ namespace MinChain
 
             if (config.Mining)
             {
-                //miner.RecipientAddress = ByteString.CopyFrom(myKeys.Address);
-                //miner.Start();
+                miner.RecipientAddress = ByteString.CopyFrom(myKeys.Address);
+                miner.Start();
             }
 
 
@@ -82,12 +82,23 @@ namespace MinChain
         }
 
 
-        public static async Task Handle(HttpContext request)
+        public async Task Handle(HttpContext request)
         {
-            var latestId = "FIXME";//executor.Latest;//memo
-            var buf = Encoding.ASCII.GetBytes($"Asked me {request.Request.Path}");
+            //Executor e;
+            var path = request.Request.Path;
+            String text;
+            if (path == "/latest-block-id")
+            {
+                text = "Latest Block Id: " + executor.Latest.Id.ToString();
+
+            }
+            else
+            {
+                text = "Invalid";
+            }
+            var buf = Encoding.ASCII.GetBytes(text);
             await request.Response.Body.WriteAsync(
-                buf, 0, buf.Length);
+                    buf, 0, buf.Length);
 
         }
 
