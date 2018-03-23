@@ -1,10 +1,17 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+
 using static MessagePack.MessagePackSerializer;
 
 namespace MinChain
@@ -57,14 +64,33 @@ namespace MinChain
 
             if (config.Mining)
             {
-                miner.RecipientAddress = ByteString.CopyFrom(myKeys.Address);
-                miner.Start();
+                //miner.RecipientAddress = ByteString.CopyFrom(myKeys.Address);
+                //miner.Start();
             }
+
+
+            var host = new WebHostBuilder()
+                        .UseKestrel()
+                        .UseUrls("http://*:8080")
+                        .Configure(app => app.Run(Handle))
+                        .Build();
+            host.Run();
 
             Console.ReadLine();
 
             connectionManager.Dispose();
         }
+
+
+        public static async Task Handle(HttpContext request)
+        {
+            var latestId = "FIXME";//executor.Latest;//memo
+            var buf = Encoding.ASCII.GetBytes($"Asked me {request.Request.Path}");
+            await request.Response.Body.WriteAsync(
+                buf, 0, buf.Length);
+
+        }
+
 
         bool LoadConfiguration(string[] args)
         {
