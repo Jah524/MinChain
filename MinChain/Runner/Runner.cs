@@ -30,6 +30,7 @@ namespace MinChain
         ConnectionManager connectionManager;
         InventoryManager inventoryManager;
         Executor executor;
+        Storage storage;
         Mining miner;
 
         void RunInternal(string[] args)
@@ -43,7 +44,7 @@ namespace MinChain
 
             connectionManager.NewConnectionEstablished += NewPeer;
             connectionManager.MessageReceived += HandleMessage;
-            executor.BlockExecuted += miner.Notify;
+            executor.BlockExecuted += _ => miner.Notify();
 
             inventoryManager.ConnectionManager = connectionManager;
             inventoryManager.Executor = executor;
@@ -54,6 +55,15 @@ namespace MinChain
 
             inventoryManager.Blocks.Add(genesis.Id, genesis.Original);
             executor.ProcessBlock(genesis);
+
+            if (!storage.IsNull())
+            {
+                executor.BlockExecuted +=
+                    block => storage.Save(block.Id, block.Original);
+
+                foreach ((var id, var data) in storage.LoadAll())
+                    inventoryManager.TryLoadBlock(id, data);
+            }
 
             connectionManager.Start(config.ListenOn);
             var t = Task.Run(async () =>
@@ -145,6 +155,20 @@ namespace MinChain
             {
                 logger.LogError(
                     $"Failed to load the genesis from {config.GenesisPath}.",
+                    exp);
+                return false;
+            }
+
+            try
+            {
+                if (!string.IsNullOrEmpty(config.StoragePath))
+                    storage = new Storage(config.StoragePath);
+            }
+            catch (Exception exp)
+            {
+                logger.LogError(
+                    $@"Failed to set up blockchain storage at {
+                        config.StoragePath}.",
                     exp);
                 return false;
             }
