@@ -12,6 +12,8 @@ namespace MinChain
         public static void Exec(string[] args)
         {
             var defaultRemote = new IPEndPoint(IPAddress.Loopback, DefaultPort);
+            var AddrPath = Path.Combine(Environment.CurrentDirectory, "addr");
+            Wallet.CreateAddrDir(AddrPath);
             var json = JsonConvert.SerializeObject(
                 new Configuration
                 {
@@ -20,6 +22,7 @@ namespace MinChain
                     KeyPairPath = "<YOUR OWN KEYPAIR>.json",
                     GenesisPath = "<GENESIS BLOCK>.bin",
                     StoragePath = Path.Combine(Environment.CurrentDirectory, "blocks"),
+                    AddrPath = AddrPath,
                     Mining = true,
                 },
                 Formatting.Indented);

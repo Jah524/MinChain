@@ -94,13 +94,27 @@ namespace MinChain
 
         public async Task Handle(HttpContext request)
         {
-            //Executor e;
             var path = request.Request.Path;
             String text;
             if (path == "/latest-block-id")
             {
                 text = "Latest Block Id: " + executor.Latest.Id.ToString();
 
+            }else if(path == "/create-addr")
+            {
+                var addrfn = Wallet.SaveAddrFunc(myKeys.PrivateKey, config.AddrPath);
+                text = "create address: " + addrfn;
+
+            }else if(path == "/get-addrs")
+            {
+                Console.WriteLine("/get-addrs");
+                string t="addrs: ";
+                foreach (var data in Wallet.LoadAllAddr(myKeys.PublicKey, config.AddrPath))
+                {
+                    //Console.WriteLine("=> " + data);
+                    t += data+", ";
+                }
+                text = t + "end";
             }
             else
             {

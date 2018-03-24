@@ -21,6 +21,9 @@ namespace MinChain
         [JsonProperty(PropertyName = "storage")]
         public string StoragePath { get; set; }
 
+        [JsonProperty(PropertyName = "addr")]
+        public string AddrPath { get; set; }
+
         [JsonProperty(PropertyName = "mining")]
         public bool Mining { get; set; }
 
