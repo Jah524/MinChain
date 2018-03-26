@@ -14,6 +14,7 @@ namespace MinChain
 {
     public class Wallet
     {
+        private static readonly byte[] initPub = System.Text.Encoding.ASCII.GetBytes("<init>");
 
         public static String GenSeed(){
             Guid g = Guid.NewGuid();
@@ -36,12 +37,13 @@ namespace MinChain
         }
         
 
-        public static byte[] CreatePrivateKey(String seed, int index)
+        public static byte[] CreatePrivateKey(String seed, int index, byte[] prevPub)
         {
+            // build private key from seed, length of keys you have and public key which generates previous address
             byte[] seedBytes = System.Text.Encoding.ASCII.GetBytes(seed);
             var sb = System.Text.Encoding.ASCII.GetString(seedBytes);
-            // merge seed with index
-            var mergedSeed = sb + index.ToString();
+            // merge seed, index and previous publicKey
+            var mergedSeed = sb + index.ToString() + System.Text.Encoding.ASCII.GetString(prevPub);
             byte[] keySeed = Hash.ComputeDoubleSHA256(System.Text.Encoding.ASCII.GetBytes(mergedSeed));
             byte[] prv = Hash.ComputeDoubleSHA256(keySeed);
             return prv;
@@ -85,33 +87,46 @@ namespace MinChain
             return x;
         }
 
+        private static void AllAddrAndPub(string seed, string addrPath, out string[] addrsOut, out byte[] p){
+            
+            int index = LoadLatestIndex(addrPath);
+            string[] addrs = new string[index];
+            byte[] lastPub = initPub;
+            foreach (int i in Enumerable.Range(0, index))
+            {             
+                var prv = CreatePrivateKey(seed, i, lastPub);
+                byte[] pub = CreatePublicKey(prv);
+                var addr = Pub2Addr(pub);
+                addrs[i] = addr;
+                lastPub = pub;
+            }
+            p = lastPub;
+            addrsOut = addrs;
+        }
+
+        public static string[] AllAddr(string seed, string addrPath)
+        {
+            byte[] x;
+            string[] addrs;
+            AllAddrAndPub(seed, addrPath, out addrs, out x);
+            return addrs;
+        }
+
         public static string CreateAddr(string seed, string addrPath)
         {
-            int index = LoadLatestIndex(addrPath);
+            byte[] pub;
+            string[] addrs;
+            AllAddrAndPub(seed, addrPath, out addrs, out pub);
 
-            var prv = CreatePrivateKey(seed,index);
+            var prv = CreatePrivateKey(seed, addrs.Length, pub);
             var pubx = CreatePublicKey(prv);
             var addr = Pub2Addr(pubx);
 
-            byte[] bytes = System.Text.Encoding.ASCII.GetBytes((index+1).ToString());
+            byte[] bytes = System.Text.Encoding.ASCII.GetBytes((addrs.Length + 1).ToString());
             var fileInfo = new FileInfo(addrPath);
             using (var stream = fileInfo.OpenWrite())
                 stream.Write(bytes, 0, bytes.Length);
             return addr;
-        }
-
-        public static string[] AllAddr(string seed, string addrPath){
-            
-            int index = LoadLatestIndex(addrPath);
-            string[] addrs = new string[index];
-            foreach (int i in Enumerable.Range(0, index))
-            {             
-                var prv = CreatePrivateKey(seed, i);
-                var pubx = CreatePublicKey(prv);
-                var addr = Pub2Addr(pubx);
-                addrs[i] = addr;
-            }
-            return addrs;
         }
 
     }

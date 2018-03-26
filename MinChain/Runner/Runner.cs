@@ -130,7 +130,12 @@ namespace MinChain
                 {
                     acc += addrs[i] + "\n";
                 }
-                text = acc;
+                if (addrs.Length != 0)
+                {
+                    text = acc;
+                }else{
+                    text = "address have not been created";
+                }
             }
             
             else
