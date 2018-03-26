@@ -75,7 +75,7 @@ namespace MinChain
             if (config.Mining)
             {
                 miner.RecipientAddress = ByteString.CopyFrom(myKeys.Address);
-                miner.Start();
+                //miner.Start();
             }
 
 
@@ -115,6 +115,18 @@ namespace MinChain
                     t += data+", ";
                 }
                 text = t + "end";
+            }else if(path == "/test-merkle")
+            {
+                List<ByteString> l = new List<ByteString>();
+                l.Add(ByteString.CopyFrom(System.Text.Encoding.ASCII.GetBytes("4096ed70a991bab41771c396dac7af70cc2b2583b8f57b730f7976cfde5c558c")));
+                l.Add(ByteString.CopyFrom(System.Text.Encoding.ASCII.GetBytes("3cbb356e4877afc32714b95577cae01bd1fe35f28b7a995c4a2a3ff5c2caa7c0")));
+                l.Add(ByteString.CopyFrom(System.Text.Encoding.ASCII.GetBytes("6b2b51fb6b191f721fc6b8b62a5ec9f73df3a063d52acfc0b56eef6a9f56075a")));
+                l.Add(ByteString.CopyFrom(System.Text.Encoding.ASCII.GetBytes("dd2ef34e63ebbc9ad0299af7897d0efc7ebb372f0db2c13512714ca63aa464e7")));
+                l.Add(ByteString.CopyFrom(System.Text.Encoding.ASCII.GetBytes("d7e6bd226efc513c105925a0015473dfbb0828fb1cf52086c1c1f0eb220ee4b2")));
+                l.Add(ByteString.CopyFrom(System.Text.Encoding.ASCII.GetBytes("d78a54ceee99edadb5a78c96b242876d4a29fde9d98c43fd8421133996ddf9a5")));
+                l.Add(ByteString.CopyFrom(System.Text.Encoding.ASCII.GetBytes("f2cc4509f9d537efb3e7910514457210119744b120ab878f63f12f787f6fb5a5")));
+                var result = BlockchainUtil.RootHashTransactionIds(l);
+                text = "result: " + System.Text.Encoding.ASCII.GetString(result);
             }
             else
             {

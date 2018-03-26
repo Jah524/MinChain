@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using static MessagePack.MessagePackSerializer;
+using System.Linq;
 
 namespace MinChain
 {
@@ -40,18 +41,47 @@ namespace MinChain
 
         public static byte[] RootHashTransactionIds(IList<ByteString> txIds)
         {
-            const int HashLength = 32;
-
-            var i = 0;
-            var ids = new byte[txIds.Count * HashLength];
-            foreach (var txId in txIds)
-            {
-                Buffer.BlockCopy(
-                    txId.ToByteArray(), 0, ids, i++ * HashLength, HashLength);
-            }
-
-            return Hash.ComputeDoubleSHA256(ids);
+            return MerkleRootHash(txIds);
         }
+
+        private static IList<byte[]> MerkleLayer(IList<byte[]> txIds)
+        {
+            byte[] CombinedHash(String left, String right) => Hash.ComputeDoubleSHA256(System.Text.Encoding.ASCII.GetBytes(left + right));
+            List<byte[]> layer = new List<byte[]>();
+            String l = "";
+            for (var i = 0; i < txIds.Count(); i++)
+            {
+                if ((i % 2) == 0)
+                {
+                    l = System.Text.Encoding.ASCII.GetString(txIds[i]);
+                }
+                else
+                {
+                    layer.Add(CombinedHash(l, System.Text.Encoding.ASCII.GetString(txIds[i])));
+                    l = "";
+                }
+            }
+            // process remain if exists
+            if(l!="")
+            {
+                layer.Add(Hash.ComputeDoubleSHA256(System.Text.Encoding.ASCII.GetBytes(l)));
+                l = "";
+            }
+            return layer;
+        }
+        public static byte[] MerkleRootHash(IList<ByteString> txIds)
+        {
+            var xx = txIds.Select(x => x.ToString());
+            List<byte[]> txIdsBytes = txIds.Select(txid => txid.ToByteArray()).ToList();
+            IList<byte[]> layer = txIdsBytes;
+            while(layer.Count() > 1){
+                Console.WriteLine("nodes: "+layer.Count);
+                layer = MerkleLayer(layer);
+            }
+            Console.WriteLine("nodes: " + layer.Count + ", finish");
+            return layer[0];
+        }
+
 
         public static Block DeserializeBlock(byte[] data)
         {
