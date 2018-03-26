@@ -41,7 +41,6 @@ namespace MinChain
             inventoryManager = new InventoryManager();
             executor = new Executor();
             miner = new Mining();
-
             connectionManager.NewConnectionEstablished += NewPeer;
             connectionManager.MessageReceived += HandleMessage;
             executor.BlockExecuted += _ => miner.Notify();
@@ -75,7 +74,7 @@ namespace MinChain
             if (config.Mining)
             {
                 miner.RecipientAddress = ByteString.CopyFrom(myKeys.Address);
-                miner.Start();
+                //miner.Start();
             }
 
 
@@ -94,18 +93,51 @@ namespace MinChain
 
         public async Task Handle(HttpContext request)
         {
-            //Executor e;
             var path = request.Request.Path;
             String text;
+
+            string p = path;
+            string[] route = p.Split('/');
+
             if (path == "/latest-block-id")
             {
                 text = "Latest Block Id: " + executor.Latest.Id.ToString();
 
             }
+            else if (path == "/create-addr")
+            {
+
+                string addr = Wallet.CreateAddr(config.Seed, config.AddrPath);
+                text = "new addr > " + addr + ", seed > " + config.Seed;
+                //text = "tmp";
+            }
+            else if(route[1] == "addrs-with-seed") //debug purpose
+            {
+                string[] addrs = Wallet.AllAddr(route[2], config.AddrPath);
+                string acc="";
+                for (int i=0; i < addrs.Length;i++)
+                {
+                    acc += addrs[i] + "\n";
+                }
+                text = acc;
+            }
+
+            else if (route[1] == "addrs")
+            {
+                string[] addrs = Wallet.AllAddr(config.Seed, config.AddrPath);
+                string acc = "";
+                for (int i = 0; i < addrs.Length; i++)
+                {
+                    acc += addrs[i] + "\n";
+                }
+                text = acc;
+            }
+            
             else
             {
                 text = "Invalid";
             }
+            
             var buf = Encoding.ASCII.GetBytes(text);
             await request.Response.Body.WriteAsync(
                     buf, 0, buf.Length);
@@ -123,8 +155,10 @@ namespace MinChain
 
             try
             {
+                
                 config = JsonConvert.DeserializeObject<Configuration>(
                     File.ReadAllText(Path.GetFullPath(args[0])));
+
             }
             catch (Exception exp)
             {

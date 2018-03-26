@@ -24,6 +24,11 @@ namespace MinChain
         [JsonProperty(PropertyName = "mining")]
         public bool Mining { get; set; }
 
+        [JsonProperty(PropertyName = "seed")]
+        public string Seed { get; set; }
+        [JsonProperty(PropertyName = "addr")]
+        public string AddrPath { get; set; }
+
         public bool ShouldSerializeListenOn() => !ListenOn.IsNull();
         public bool ShouldSerializeInitialEndpoints() =>
             !InitialEndpoints.IsNullOrEmpty();

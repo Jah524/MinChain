@@ -12,6 +12,7 @@ namespace MinChain
         public static void Exec(string[] args)
         {
             var defaultRemote = new IPEndPoint(IPAddress.Loopback, DefaultPort);
+            var seed = Wallet.GenSeed();
             var json = JsonConvert.SerializeObject(
                 new Configuration
                 {
@@ -21,6 +22,8 @@ namespace MinChain
                     GenesisPath = "<GENESIS BLOCK>.bin",
                     StoragePath = Path.Combine(Environment.CurrentDirectory, "blocks"),
                     Mining = true,
+                    Seed = seed,
+                    AddrPath = "<ADDR>.txt"
                 },
                 Formatting.Indented);
             Console.WriteLine(json);
